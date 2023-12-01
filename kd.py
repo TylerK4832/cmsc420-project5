@@ -118,7 +118,7 @@ class KDtree():
             data = currNode.data
             sortedData = sorted(data, key=lambda x: x.coords[coordinate:] + x.coords[:coordinate])
             # print("sorted node data " + str([{datum.coords} for datum in sortedData]))
-
+            # c
             median = math.floor((self.m + 1) / 2)
             # print("median: " + str(median))
             splitvalue = float((maximum + minimum) / 2)
