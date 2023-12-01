@@ -15,6 +15,7 @@ class Datum():
         dict_repr = {'code':self.code,'coords':self.coords}
         return(dict_repr)
 
+
 # Internal node class.
 # DO NOT MODIFY.
 class NodeInternal():
@@ -74,7 +75,8 @@ class KDtree():
         k = len(data[0].coords)  # Assuming all tuples have the same length
         maxSpread = 0
         maxSpreadCoordinate = None
-
+        minimum = None
+        maximum = None
         for i in range(k):
             minimum = min(t.coords[i] for t in data)
             maximum= max(t.coords[i] for t in data)
@@ -84,7 +86,7 @@ class KDtree():
                 maxSpread = spread
                 maxSpreadCoordinate = i
 
-        return maxSpreadCoordinate
+        return (maxSpreadCoordinate, minimum, maximum)
 
 
     # Insert the Datum with the given code and coords into the tree.
@@ -110,13 +112,17 @@ class KDtree():
 
         # split if needed
         if len(currNode.data) > self.m:
-
-            coordinate = KDtree.maxSpread(currNode.data)
+            # print("splitting node with data " + str([{datum.coords} for datum in currNode.data]))
+            (coordinate, minimum, maximum) = KDtree.maxSpread(currNode.data)
+            # print("max spread coordinate (splitindex): " + str(coordinate))
             data = currNode.data
             sortedData = sorted(data, key=lambda x: x.coords[coordinate:] + x.coords[:coordinate])
+            # print("sorted node data " + str([{datum.coords} for datum in sortedData]))
 
             median = math.floor((self.m + 1) / 2)
-            splitvalue = float(sortedData[median].coords[coordinate])
+            # print("median: " + str(median))
+            splitvalue = float((maximum + minimum) / 2)
+            # print("splitvalue: " + str(splitvalue))
             leftData = sortedData[:median]
             rightData = sortedData[median:]
 
