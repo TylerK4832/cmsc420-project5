@@ -158,7 +158,38 @@ class KDtree():
     # Delete the Datum with the given point from the tree.
     # The Datum with the given point is guaranteed to be in the tree.
     def delete(self,point:tuple[int]):
-        thisisaplaceholder = True
+        if self.root == None: return
+        
+        parentNode = None
+        grandNode = None
+        currNode = self.root
+        while type(currNode) != NodeLeaf:
+            grandNode = parentNode
+            parentNode = currNode
+            if point[currNode.splitindex] < currNode.splitvalue:
+                currNode = currNode.leftchild
+            else:
+                currNode = currNode.rightchild
+
+        currNode.data = [d for d in currNode.data if d.coords != point]
+
+        if not currNode.data:
+
+            if parentNode is not None:
+                if currNode is parentNode.leftchild:
+                    sibling = parentNode.rightchild
+                else:
+                    sibling = parentNode.leftchild
+
+                if grandNode is None:
+                    self.root = sibling
+                elif currNode is parentNode.leftchild:
+                    grandNode.leftchild = sibling
+                else:
+                    grandNode.rightchild = sibling
+                    
+            else:
+                self.root = None
 
     # Find the k nearest neighbors to the point.
     def knn(self,k:int,point:tuple[int]) -> str:
