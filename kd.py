@@ -65,11 +65,79 @@ class KDtree():
         else:
             dict_repr = _to_dict(self.root)
         return json.dumps(dict_repr,indent=2)
+    
+    @staticmethod
+    def maxSpread(data):
+        if not data or not data[0]:
+            return None
+
+        k = len(data[0].coords)  # Assuming all tuples have the same length
+        maxSpread = 0
+        maxSpreadCoordinate = None
+
+        for i in range(k):
+            minimum = min(t.coords[i] for t in data)
+            maximum= max(t.coords[i] for t in data)
+            spread = maximum - minimum
+
+            if spread > maxSpread:
+                maxSpread = spread
+                maxSpreadCoordinate = i
+
+        return maxSpreadCoordinate
+
 
     # Insert the Datum with the given code and coords into the tree.
     # The Datum with the given coords is guaranteed to not be in the tree.
     def insert(self,point:tuple[int],code:str):
-        thisisaplaceholder = True
+        # print("inserting" + str(point))
+        newEntry = Datum(point, code)
+
+        if self.root == None:
+            self.root = NodeLeaf([newEntry])
+            return
+        
+        prevNode = None
+        currNode = self.root
+        while type(currNode) != NodeLeaf:
+            prevNode = currNode
+            if point[currNode.splitindex] < currNode.splitvalue:
+                currNode = currNode.leftchild
+            else:
+                currNode = currNode.rightchild
+        
+        currNode.data.append(newEntry)
+
+        # split if needed
+        if len(currNode.data) > self.m:
+
+            coordinate = KDtree.maxSpread(currNode.data)
+            data = currNode.data
+            sortedData = sorted(data, key=lambda x: x.coords[coordinate:] + x.coords[:coordinate])
+
+            median = math.floor((self.m + 1) / 2)
+            splitvalue = float(sortedData[median].coords[coordinate])
+            leftData = sortedData[:median]
+            rightData = sortedData[median+1:]
+
+            leftNode = NodeLeaf(leftData)
+            rightNode = NodeLeaf(rightData)
+            splitNode = NodeInternal(splitindex=coordinate, 
+                                     splitvalue=splitvalue, 
+                                     leftchild=leftNode, 
+                                     rightchild=rightNode)
+            if prevNode is None:
+                self.root = splitNode
+            elif currNode is prevNode.leftchild:
+                prevNode.leftchild = splitNode
+            else:
+                prevNode.rightchild = splitNode
+            
+    
+            
+
+        
+
 
     # Delete the Datum with the given point from the tree.
     # The Datum with the given point is guaranteed to be in the tree.
