@@ -97,7 +97,7 @@ class KDtree():
             median = (middle_left + middle_right) / 2
         else:
             median = data[length // 2].coords[coordinate]
-        return median
+        return float(median)
         
 
 
