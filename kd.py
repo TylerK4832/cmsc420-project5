@@ -118,7 +118,7 @@ class KDtree():
             median = math.floor((self.m + 1) / 2)
             splitvalue = float(sortedData[median].coords[coordinate])
             leftData = sortedData[:median]
-            rightData = sortedData[median+1:]
+            rightData = sortedData[median:]
 
             leftNode = NodeLeaf(leftData)
             rightNode = NodeLeaf(rightData)
