@@ -86,7 +86,19 @@ class KDtree():
                 maxSpread = spread
                 maxSpreadCoordinate = i
 
-        return (maxSpreadCoordinate, minimum, maximum)
+        return maxSpreadCoordinate
+    
+    @staticmethod
+    def coordsMedian(data, coordinate):
+        length = len(data)
+        if length % 2 == 0:
+            middle_left = data[length // 2 - 1].coords[coordinate]
+            middle_right = data[length // 2].coords[coordinate]
+            median = (middle_left + middle_right) / 2
+        else:
+            median = data[length // 2].coords[coordinate]
+        return median
+        
 
 
     # Insert the Datum with the given code and coords into the tree.
@@ -113,15 +125,13 @@ class KDtree():
         # split if needed
         if len(currNode.data) > self.m:
             # print("splitting node with data " + str([{datum.coords} for datum in currNode.data]))
-            (coordinate, minimum, maximum) = KDtree.maxSpread(currNode.data)
+            coordinate = KDtree.maxSpread(currNode.data)
             # print("max spread coordinate (splitindex): " + str(coordinate))
             data = currNode.data
             sortedData = sorted(data, key=lambda x: x.coords[coordinate:] + x.coords[:coordinate])
             # print("sorted node data " + str([{datum.coords} for datum in sortedData]))
-            # c
             median = math.floor((self.m + 1) / 2)
-            # print("median: " + str(median))
-            splitvalue = float((maximum + minimum) / 2)
+            splitvalue = KDtree.coordsMedian(sortedData, coordinate)
             # print("splitvalue: " + str(splitvalue))
             leftData = sortedData[:median]
             rightData = sortedData[median:]
