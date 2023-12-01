@@ -174,20 +174,25 @@ class KDtree():
         currNode.data = [d for d in currNode.data if d.coords != point]
 
         if not currNode.data:
-
+            
             if parentNode is not None:
+
                 if currNode is parentNode.leftchild:
                     sibling = parentNode.rightchild
                 else:
                     sibling = parentNode.leftchild
 
+                # print("parent split value: " + str(parentNode.splitvalue))
+                # print("grandparent split value: " + str(grandNode.splitvalue))
+                # print("sibling data " + str([{datum.coords} for datum in sibling.data]))
+
                 if grandNode is None:
                     self.root = sibling
-                elif currNode is parentNode.leftchild:
+                elif parentNode is grandNode.leftchild:
                     grandNode.leftchild = sibling
                 else:
                     grandNode.rightchild = sibling
-                    
+
             else:
                 self.root = None
 
