@@ -244,12 +244,12 @@ class KDtree():
             if distLeft <= distRight and (len(knnlist) < k or distLeft < distFurthest):
                 (leaveschecked, knnlist) = KDtree.knnhelper(root.leftchild,leaveschecked,knnlist,k,point)
                 distFurthest = KDtree.distCoords(point,knnlist[-1].coords)
-                if len(knnlist) < k or distRight < distFurthest:
+                if len(knnlist) < k or distRight <= distFurthest:
                     (leaveschecked, knnlist) = KDtree.knnhelper(root.rightchild,leaveschecked,knnlist,k,point)
             elif distRight < distLeft and (len(knnlist) < k or distRight < distFurthest):
                 (leaveschecked, knnlist) = KDtree.knnhelper(root.rightchild,leaveschecked,knnlist,k,point)
                 distFurthest = KDtree.distCoords(point,knnlist[-1].coords)
-                if len(knnlist) < k or distLeft < distFurthest:
+                if len(knnlist) < k or distLeft <= distFurthest:
                     (leaveschecked, knnlist) = KDtree.knnhelper(root.leftchild,leaveschecked,knnlist,k,point)
 
             return (leaveschecked, knnlist)
@@ -257,7 +257,7 @@ class KDtree():
         elif type(root) == NodeLeaf:
 
             newknnlist = root.data + knnlist
-            newknnlist = sorted(newknnlist, key=lambda p: KDtree.distCoords(p.coords,point))
+            newknnlist = sorted(newknnlist, key=lambda p: (KDtree.distCoords(p.coords,point), p.code))
             newknnlist = newknnlist[:min(k,len(newknnlist))]
         
             return (leaveschecked + 1, newknnlist)
