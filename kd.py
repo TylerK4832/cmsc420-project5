@@ -67,19 +67,18 @@ class KDtree():
             dict_repr = _to_dict(self.root)
         return json.dumps(dict_repr,indent=2)
     
-    @staticmethod
     def maxSpread(data):
         if not data or not data[0]:
             return None
 
-        k = len(data[0].coords)  # Assuming all tuples have the same length
+        k = len(data[0].coords)
         maxSpread = 0
         maxSpreadCoordinate = None
         minimum = None
         maximum = None
         for i in range(k):
             minimum = min(t.coords[i] for t in data)
-            maximum= max(t.coords[i] for t in data)
+            maximum = max(t.coords[i] for t in data)
             spread = maximum - minimum
 
             if spread > maxSpread:
@@ -88,13 +87,12 @@ class KDtree():
 
         return maxSpreadCoordinate
     
-    @staticmethod
     def coordsMedian(data, coordinate):
         length = len(data)
         if length % 2 == 0:
-            middle_left = data[length // 2 - 1].coords[coordinate]
-            middle_right = data[length // 2].coords[coordinate]
-            median = (middle_left + middle_right) / 2
+            middleLeft = data[length // 2 - 1].coords[coordinate]
+            middleRight = data[length // 2].coords[coordinate]
+            median = (middleLeft + middleRight) / 2
         else:
             median = data[length // 2].coords[coordinate]
         return float(median)
@@ -122,17 +120,15 @@ class KDtree():
         
         currNode.data.append(newEntry)
 
-        # split if needed
         if len(currNode.data) > self.m:
-            # print("splitting node with data " + str([{datum.coords} for datum in currNode.data]))
+
             coordinate = KDtree.maxSpread(currNode.data)
-            # print("max spread coordinate (splitindex): " + str(coordinate))
             data = currNode.data
             sortedData = sorted(data, key=lambda x: x.coords[coordinate:] + x.coords[:coordinate])
-            # print("sorted node data " + str([{datum.coords} for datum in sortedData]))
+   
             median = math.floor((self.m + 1) / 2)
             splitvalue = KDtree.coordsMedian(sortedData, coordinate)
-            # print("splitvalue: " + str(splitvalue))
+      
             leftData = sortedData[:median]
             rightData = sortedData[median:]
 
@@ -188,8 +184,8 @@ class KDtree():
                 self.root = None
     
     def distCoords(coord1:tuple[int], coord2:tuple[int]):
-        squared_distance = sum((v1 - v2) ** 2 for v1, v2 in zip(coord1, coord2))
-        distance = math.sqrt(squared_distance)
+        squaredDistance = sum((v1 - v2) ** 2 for v1, v2 in zip(coord1, coord2))
+        distance = math.sqrt(squaredDistance)
         return distance
     
     def getBB(root):
