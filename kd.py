@@ -232,7 +232,7 @@ class KDtree():
         if type(root) == NodeInternal:
 
             if knnlist:
-                distFurthest = KDtree.distCoords(point,knnlist[-1])
+                distFurthest = KDtree.distCoords(point,knnlist[-1].coords)
             else:
                 distFurthest = float('inf')
 
