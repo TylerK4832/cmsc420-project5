@@ -104,7 +104,7 @@ class KDtree():
     # Insert the Datum with the given code and coords into the tree.
     # The Datum with the given coords is guaranteed to not be in the tree.
     def insert(self,point:tuple[int],code:str):
-        # print("inserting" + str(point))
+
         newEntry = Datum(point, code)
 
         if self.root == None:
@@ -148,11 +148,6 @@ class KDtree():
                 prevNode.leftchild = splitNode
             else:
                 prevNode.rightchild = splitNode
-            
-    
-            
-
-        
 
 
     # Delete the Datum with the given point from the tree.
@@ -182,10 +177,6 @@ class KDtree():
                 else:
                     sibling = parentNode.leftchild
 
-                # print("parent split value: " + str(parentNode.splitvalue))
-                # print("grandparent split value: " + str(grandNode.splitvalue))
-                # print("sibling data " + str([{datum.coords} for datum in sibling.data]))
-
                 if grandNode is None:
                     self.root = sibling
                 elif parentNode is grandNode.leftchild:
@@ -195,14 +186,86 @@ class KDtree():
 
             else:
                 self.root = None
+    
+    def distCoords(coord1:tuple[int], coord2:tuple[int]):
+        squared_distance = sum((v1 - v2) ** 2 for v1, v2 in zip(coord1, coord2))
+        distance = math.sqrt(squared_distance)
+        return distance
+    
+    def getBB(root):
+        if type(root) == NodeInternal:
+            boxLeft = KDtree.getBB(root.leftchild)
+            boxRight = KDtree.getBB(root.rightchild)
+            box = tuple((min(t1[0], t2[0]), max(t1[1], t2[1])) for t1, t2 in zip(boxLeft, boxRight))
+        elif type(root) == NodeLeaf:
 
-    # Find the k nearest neighbors to the point.
-    def knn(self,k:int,point:tuple[int]) -> str:
+            k = len(root.data[0].coords)
+
+            minValues = [float('inf')] * k
+            maxValues = [-float('inf')] * k
+
+            for point in root.data:
+                coords = point.coords
+                for i in range(len(coords)):
+                    minValues[i] = min(minValues[i], coords[i])
+                    maxValues[i] = max(maxValues[i], coords[i])
+
+            box = tuple((minVal, maxVal) for minVal, maxVal in zip(minValues, maxValues))
+        return box
+    
+    def distBB(coord:tuple[int], box:tuple[tuple[int]]):
+        sum = 0
+        for interval, val in zip(box, coord):
+            if val < interval[0]:
+                sum = sum + (interval[0] - val) ** 2
+            elif val > interval[1]:
+                sum = sum + (val - interval[1]) ** 2
+        return math.sqrt(sum)
+
+
+    def knnhelper(root,leaveschecked,knnlist,k:int,point:tuple[int]) -> str:
         # Use the strategy discussed in class and in the notes.
         # The list should be a list of elements of type Datum.
         # While recursing, count the number of leaf nodes visited while you construct the list.
         # The following lines should be replaced by code that does the job.
-        leaveschecked = 0
-        knnlist = []
-        # The following return line can probably be left alone unless you make changes in variable names.
+
+        if type(root) == NodeInternal:
+
+            if knnlist:
+                distFurthest = KDtree.distCoords(point,knnlist[-1])
+            else:
+                distFurthest = float('inf')
+
+            boxLeft = KDtree.getBB(root.leftchild)
+            distLeft = KDtree.distBB(point,boxLeft)
+            boxRight = KDtree.getBB(root.rightchild)
+            distRight = KDtree.distBB(point,boxRight)
+
+            if distLeft <= distRight and (len(knnlist) < k or distLeft < distFurthest):
+                (leaveschecked, knnlist) = KDtree.knnhelper(root.leftchild,leaveschecked,knnlist,k,point)
+                distFurthest = KDtree.distCoords(point,knnlist[-1].coords)
+                if len(knnlist) < k or distRight < distFurthest:
+                    (leaveschecked, knnlist) = KDtree.knnhelper(root.rightchild,leaveschecked,knnlist,k,point)
+            elif distRight < distLeft and (len(knnlist) < k or distRight < distFurthest):
+                (leaveschecked, knnlist) = KDtree.knnhelper(root.rightchild,leaveschecked,knnlist,k,point)
+                distFurthest = KDtree.distCoords(point,knnlist[-1].coords)
+                if len(knnlist) < k or distLeft < distFurthest:
+                    (leaveschecked, knnlist) = KDtree.knnhelper(root.leftchild,leaveschecked,knnlist,k,point)
+
+            return (leaveschecked, knnlist)
+
+        elif type(root) == NodeLeaf:
+
+            newknnlist = root.data + knnlist
+            newknnlist = sorted(newknnlist, key=lambda p: KDtree.distCoords(p.coords,point))
+            newknnlist = newknnlist[:min(k,len(newknnlist))]
+        
+            return (leaveschecked + 1, newknnlist)
+    
+
+    # Find the k nearest neighbors to the point.
+    def knn(self,k:int,point:tuple[int]) -> str:
+
+        (leaveschecked, knnlist) = KDtree.knnhelper(self.root,0,[],k,point)
+
         return(json.dumps({"leaveschecked":leaveschecked,"points":[datum.to_json() for datum in knnlist]},indent=2))
